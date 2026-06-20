@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER CHASE - ターン制追跡ゲーム</title>
+    <!-- Google Fonts: Orbitron & Share Tech Mono for cyber style -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cyber-background-grid"></div>
+    <div class="scanlines"></div>
+
+    <div class="container">
+        <!-- ================= タイトル画面 ================= -->
+        <section id="title-screen" class="screen active">
+            <div class="glitch-wrapper">
+                <h1 class="title-logo" data-text="CYBER CHASE">CYBER CHASE</h1>
+                <p class="subtitle">THE EVADER</p>
+            </div>
+
+            <div class="settings-panel">
+                <h3 class="panel-title">DIFFICULTY / 難易度設定</h3>
+                <div class="difficulty-options">
+                    <label class="diff-btn">
+                        <input type="radio" name="difficulty" value="easy">
+                        <span class="diff-label">EASY (16T)</span>
+                    </label>
+                    <label class="diff-btn">
+                        <input type="radio" name="difficulty" value="mild" checked>
+                        <span class="diff-label">MILD (16T)</span>
+                    </label>
+                    <label class="diff-btn">
+                        <input type="radio" name="difficulty" value="hard">
+                        <span class="diff-label">HARD (20T)</span>
+                    </label>
+                </div>
+            </div>
+
+            <button id="start-btn" class="cyber-btn primary">
+                <span class="btn-text">INITIALIZE MISSION</span>
+                <span class="btn-glitch-effect"></span>
+            </button>
+
+            <div class="rule-container">
+                <h3 class="rule-title">MISSION RULES / 作戦要領</h3>
+                <div class="rule-content">
+                    <ul>
+                        <li><span class="highlight-blue">ターン制進行:</span> 逃亡者（味方）→ 追跡者（敵）の順に交互に行動します。</li>
+                        <li><span class="highlight-blue">初期配置:</span> 中央の2×2エリア（4マス）に配置されます（MILD/HARDは周囲を敵に囲まれる包囲陣形。※HARDは完全には囲みません）。</li>
+                        <li><span class="highlight-blue">移動制限:</span> 1ターンに1コマ、隣接する上下左右 of 1マスのみ移動可能（斜め・4×4の枠外への移動は不可）。</li>
+                        <li><span class="highlight-blue">追跡者(敵)の数とルール:</span>
+                            <ul>
+                                <li>EASY: 敵2コマ（UNIT A, B）。毎ターン交互に行動し、100%最適経路（BFS）で追跡します。（16T）</li>
+                                <li>MILD: 敵<span class="highlight-red">3コマ</span>（UNIT A, B, C）。「前ターンに動かしたコマは次ターン動かせない」ルールが適用され、50回シミュレーション学習AIで追跡します。（16T）</li>
+                                <li>HARD: 敵<span class="highlight-red">4コマ</span>（UNIT A, B, C, D）に増加！「前ターンに動かしたコマは次ターン動かせない」ルールが適用され、100回シミュレーション学習AIで追跡します。（20T）</li>
+                            </ul>
+                        </li>
+                        <li><span class="highlight-blue">競合の禁止:</span> 1つのマスに入れるコマは1つまで。味方・敵の共存や、敵同士の共存は不可。他のコマの飛び越しもできません。</li>
+                        <li><span class="highlight-green">逃亡者（味方）勝利:</span> 敵に完全に包囲（移動可能マスがゼロ）されずに、選択した難易度の<span class="highlight-green">最大ターン（EASY/MILD: 16 / HARD: 20ターン）</span>を生き延びること。</li>
+                        <li><span class="highlight-red">追跡者（敵）勝利:</span> 最大ターン以内に逃亡者を完全に包囲（チェックメイト）すること。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ゲーム画面 ================= -->
+        <section id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="status-item">
+                    <span class="status-label">ROUND</span>
+                    <span id="round-counter" class="status-value">01 / --</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">ACTIVE PHASE</span>
+                    <span id="phase-indicator" class="status-value blink-cyan">PLAYER</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">NEXT ENEMY</span>
+                    <span id="next-enemy-indicator" class="status-value font-mono">UNIT A</span>
+                </div>
+            </div>
+
+            <div class="board-wrapper">
+                <div id="game-board" class="board">
+                    <!-- 5x5グリッド (JSで動的生成) -->
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <div class="info-log" id="status-log">ミッション開始。あなたのターンです。移動先を選択してください。</div>
+                <div class="button-group">
+                    <button id="restart-btn" class="cyber-btn secondary small">
+                        <span class="btn-text">RESTART</span>
+                    </button>
+                    <button id="quit-btn" class="cyber-btn secondary small">
+                        <span class="btn-text">ABORT MISSION</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= リザルト画面 ================= -->
+        <section id="result-screen" class="screen">
+            <div class="result-banner">
+                <h1 id="result-title" class="result-title">MISSION SUCCESS</h1>
+                <p id="result-subtitle" class="result-subtitle">MISSION COMPLETED</p>
+            </div>
+
+            <div class="stats-panel">
+                <div class="stat-row">
+                    <span>最終生存ラウンド:</span>
+                    <span id="stat-rounds" class="stat-value">--</span>
+                </div>
+                <div class="stat-row">
+                    <span>選択難易度:</span>
+                    <span id="stat-difficulty" class="stat-value">MILD</span>
+                </div>
+                <div class="stat-row">
+                    <span>終了ステータス:</span>
+                    <span id="stat-status" class="stat-value highlight-green">EVADED</span>
+                </div>
+            </div>
+
+            <div class="result-actions">
+                <button id="retry-btn" class="cyber-btn primary">
+                    <span class="btn-text">REDEPLOY (RETRY)</span>
+                </button>
+                <button id="back-title-btn" class="cyber-btn secondary">
+                    <span class="btn-text">RETURN TO BASE</span>
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
