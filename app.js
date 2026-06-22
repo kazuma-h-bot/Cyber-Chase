@@ -14,6 +14,7 @@ const state = {
     phase: 'player', // 'player' or 'enemy'
     lastMovedEnemy: null, // 'A', 'B', 'C', or 'D'
     difficulty: 'mild', // 'easy', 'mild', or 'hard'
+    selectedEnemy: null, // Added for HUMAN mode
     gameOver: false,
     winner: null, // 'player' or 'enemy'
     isProcessingAI: false
@@ -119,6 +120,8 @@ function initGame() {
         state.maxRounds = 16;
     } else if (state.difficulty === 'hard') {
         state.maxRounds = 20;
+    } else if (state.difficulty === 'human') {
+        state.maxRounds = 16;
     }
 
     state.currentRound = 1;
@@ -126,6 +129,7 @@ function initGame() {
     state.lastMovedEnemy = null; // null triggers forced A on first turn
     state.enemyCPos = null;
     state.enemyDPos = null;
+    state.selectedEnemy = null;
     state.gameOver = false;
     state.winner = null;
     state.isProcessingAI = false;
@@ -135,6 +139,7 @@ function initGame() {
 
     // Reset board UI
     clearMoveHighlights();
+    clearEnemyHighlights();
     
     // Create/Recreate tokens
     createTokens();
@@ -214,8 +219,8 @@ function randomizePositions() {
         state.enemyBPos = enemies[1];
         state.enemyCPos = enemies[2];
         state.enemyDPos = enemies[3];
-    } else if (state.difficulty === 'mild') {
-        // MILD mode: 3 enemies (A, B, C) setup corners trapping but leaving 1 escape path
+    } else if (state.difficulty === 'mild' || state.difficulty === 'human') {
+        // MILD/HUMAN mode: 3 enemies (A, B, C) setup corners trapping but leaving 1 escape path
         const centerPositions = [
             { x: 1, y: 1 }, { x: 1, y: 2 },
             { x: 2, y: 1 }, { x: 2, y: 2 }
@@ -292,8 +297,8 @@ function createTokens() {
     enemyBToken.innerHTML = '<div class="token-inner"><span>B</span></div>';
     boardElement.appendChild(enemyBToken);
 
-    // Enemy C Token (Only in MILD / HARD)
-    if (state.difficulty === 'hard' || state.difficulty === 'mild') {
+    // Enemy C Token (Only in MILD / HARD / HUMAN)
+    if (state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') {
         const enemyCToken = document.createElement('div');
         enemyCToken.id = 'token-enemy-c';
         enemyCToken.className = 'token enemy-c';
@@ -318,7 +323,7 @@ function updateTokenPositions() {
     setTokenPos('token-player', state.playerPos);
     setTokenPos('token-enemy-a', state.enemyAPos);
     setTokenPos('token-enemy-b', state.enemyBPos);
-    if ((state.difficulty === 'hard' || state.difficulty === 'mild') && state.enemyCPos) {
+    if ((state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') && state.enemyCPos) {
         setTokenPos('token-enemy-c', state.enemyCPos);
     }
     if (state.difficulty === 'hard' && state.enemyDPos) {
@@ -365,7 +370,7 @@ function updateUI() {
             nextEnemyIndicator.textContent = 'UNIT A / B / C';
             nextEnemyIndicator.style.color = 'var(--neon-magenta)';
         }
-    } else if (state.difficulty === 'mild') {
+    } else if (state.difficulty === 'mild' || state.difficulty === 'human') {
         if (state.lastMovedEnemy === null) {
             nextEnemyIndicator.textContent = 'UNIT A';
             nextEnemyIndicator.style.color = 'var(--neon-magenta)';
@@ -428,7 +433,7 @@ function highlightValidMoves() {
     if (state.gameOver || state.phase !== 'player') return;
 
     const enemies = [state.enemyAPos, state.enemyBPos];
-    if ((state.difficulty === 'hard' || state.difficulty === 'mild') && state.enemyCPos) {
+    if ((state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') && state.enemyCPos) {
         enemies.push(state.enemyCPos);
     }
     if (state.difficulty === 'hard' && state.enemyDPos) {
@@ -463,7 +468,7 @@ function handleCellClick(event) {
     const ny = parseInt(cell.dataset.y);
 
     const enemies = [state.enemyAPos, state.enemyBPos];
-    if ((state.difficulty === 'hard' || state.difficulty === 'mild') && state.enemyCPos) {
+    if ((state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') && state.enemyCPos) {
         enemies.push(state.enemyCPos);
     }
     if (state.difficulty === 'hard' && state.enemyDPos) {
@@ -511,7 +516,7 @@ function processEnemyTurn() {
             const allEnemies = ['A', 'B', 'C', 'D'];
             candidates = allEnemies.filter(e => e !== state.lastMovedEnemy);
         }
-    } else if (state.difficulty === 'mild') {
+    } else if (state.difficulty === 'mild' || state.difficulty === 'human') {
         // 3 enemies: Cannot move the one moved last turn
         if (state.lastMovedEnemy === null) {
             candidates = ['A'];
@@ -526,6 +531,60 @@ function processEnemyTurn() {
         } else {
             candidates = ['B'];
         }
+    }
+
+    // HUMAN mode branch: Player controls the enemies manually
+    if (state.difficulty === 'human') {
+        state.isProcessingAI = false; // Allow human clicking
+        state.selectedEnemy = null;
+
+        // Check if there are any valid moves for all candidates
+        let anyMovePossible = false;
+        const choices = []; // candidates that actually have valid moves
+        
+        candidates.forEach(enemyId => {
+            const currentPos = enemyId === 'A' ? state.enemyAPos : (enemyId === 'B' ? state.enemyBPos : state.enemyCPos);
+            const others = [state.playerPos];
+            if (enemyId !== 'A') others.push(state.enemyAPos);
+            if (enemyId !== 'B') others.push(state.enemyBPos);
+            if (enemyId !== 'C') others.push(state.enemyCPos);
+            
+            const moves = getValidMoves(currentPos, others);
+            if (moves.length > 0) {
+                anyMovePossible = true;
+                choices.push(enemyId);
+            }
+        });
+
+        if (!anyMovePossible) {
+            // Pass automatically if no enemy can move
+            const lockedList = candidates.join(' & ');
+            logMessage(`追跡者(${lockedList}) は移動ルートが遮断されています (PASS)。`, true);
+            state.lastMovedEnemy = candidates[0]; // fallback
+            
+            setTimeout(() => {
+                state.currentRound += 1;
+                state.phase = 'player';
+                updateUI();
+                const ended = checkGameState();
+                if (!ended) {
+                    highlightValidMoves();
+                    logMessage(`ラウンド ${state.currentRound}: あなたのターンです。`);
+                }
+            }, 1200);
+            return;
+        }
+
+        // Setup manual selection
+        if (state.lastMovedEnemy === null) {
+            // First turn: Force UNIT A, but use 2-step selection for UI consistency
+            logMessage('追跡者(人間)のターンです。動かす UNIT A (強制・点滅) を選択してください。', true);
+            highlightSelectableEnemies(['A']);
+        } else {
+            logMessage('追跡者(人間)のターンです。動かすUNIT(点滅)を選択してください。', true);
+            highlightSelectableEnemies(choices);
+        }
+        return;
     }
 
     // Calculate best move among candidates
@@ -569,7 +628,7 @@ function processEnemyTurn() {
             let score;
             if (state.difficulty === 'hard') {
                 score = evaluateMoveWithSimulations(enemyId, move, 100);
-            } else if (state.difficulty === 'mild') {
+            } else if (state.difficulty === 'mild' || state.difficulty === 'easy') {
                 score = evaluateMoveWithSimulations(enemyId, move, 50);
             } else {
                 const pathDist = getShortestPathLength(move, state.playerPos, [other1, other2, other3].filter(p => p !== null));
@@ -586,7 +645,7 @@ function processEnemyTurn() {
     let chosenMove = null;
 
     if (validMoveChoices.length > 0) {
-        const useRandom = (state.difficulty === 'easy' && Math.random() < 0.50);
+        const useRandom = false;
 
         if (useRandom) {
             const pick = validMoveChoices[Math.floor(Math.random() * validMoveChoices.length)];
@@ -596,7 +655,7 @@ function processEnemyTurn() {
         } else if (bestChoice) {
             chosenEnemyId = bestChoice.enemyId;
             chosenMove = bestChoice.move;
-            if (state.difficulty === 'hard' || state.difficulty === 'mild') {
+            if (state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'easy') {
                 const runs = state.difficulty === 'hard' ? 100 : 50;
                 logMessage(`追跡者${chosenEnemyId} が${runs}回シミュレーション学習により最適包囲軌道を選択。`, true);
             } else {
@@ -807,7 +866,7 @@ function getShortestPathLength(start, target, obstacles) {
 function checkGameState() {
     // 1. Check for player trapped (Checkmate condition)
     const enemies = [state.enemyAPos, state.enemyBPos];
-    if ((state.difficulty === 'hard' || state.difficulty === 'mild') && state.enemyCPos) {
+    if ((state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') && state.enemyCPos) {
         enemies.push(state.enemyCPos);
     }
     if (state.difficulty === 'hard' && state.enemyDPos) {
@@ -861,4 +920,119 @@ function showResultScreen() {
         statStatus.textContent = 'CAPTURED (完全包囲)';
         statStatus.className = 'stat-value highlight-red';
     }
+}
+
+// --- Interactive Human vs Human Enemy turn ---
+function highlightSelectableEnemies(choices) {
+    clearEnemyHighlights();
+    
+    if (state.gameOver || state.phase !== 'enemy') return;
+
+    choices.forEach(enemyId => {
+        const pos = enemyId === 'A' ? state.enemyAPos : (enemyId === 'B' ? state.enemyBPos : state.enemyCPos);
+        const cell = boardElement.querySelector(`.cell[data-x="${pos.x}"][data-y="${pos.y}"]`);
+        if (cell) {
+            cell.classList.add('selectable-enemy');
+            cell.dataset.enemyId = enemyId;
+            cell.addEventListener('click', handleEnemyCellClick);
+        }
+    });
+}
+
+function handleEnemyCellClick(event) {
+    if (state.gameOver || state.phase !== 'enemy') return;
+
+    const cell = event.currentTarget;
+    const enemyId = cell.dataset.enemyId;
+    
+    state.selectedEnemy = enemyId;
+    
+    // Clear styling but maintain selectable tags so player can switch choice
+    const cells = boardElement.querySelectorAll('.cell');
+    cells.forEach(c => {
+        c.classList.remove('selected-enemy-owner');
+        c.classList.remove('valid-enemy-move');
+        c.removeEventListener('click', handleEnemyMoveClick);
+    });
+
+    cell.classList.add('selected-enemy-owner');
+    logMessage(`追跡者${enemyId} が選択されました。移動先を指定してください。`, true);
+    
+    highlightEnemyMoves(enemyId);
+}
+
+function highlightEnemyMoves(enemyId) {
+    // Determine current position and obstacles
+    const currentPos = enemyId === 'A' ? state.enemyAPos : (enemyId === 'B' ? state.enemyBPos : state.enemyCPos);
+    
+    // Highlight the selected enemy's owner cell
+    const ownerCell = boardElement.querySelector(`.cell[data-x="${currentPos.x}"][data-y="${currentPos.y}"]`);
+    if (ownerCell) {
+        ownerCell.classList.add('selected-enemy-owner');
+    }
+
+    const obstacles = [state.playerPos];
+    if (enemyId !== 'A') obstacles.push(state.enemyAPos);
+    if (enemyId !== 'B') obstacles.push(state.enemyBPos);
+    if (enemyId !== 'C') obstacles.push(state.enemyCPos);
+
+    const moves = getValidMoves(currentPos, obstacles);
+
+    moves.forEach(move => {
+        const cell = boardElement.querySelector(`.cell[data-x="${move.x}"][data-y="${move.y}"]`);
+        if (cell) {
+            cell.classList.add('valid-enemy-move');
+            cell.addEventListener('click', handleEnemyMoveClick);
+        }
+    });
+}
+
+function handleEnemyMoveClick(event) {
+    if (state.gameOver || state.phase !== 'enemy' || !state.selectedEnemy) return;
+
+    const cell = event.currentTarget;
+    const tx = parseInt(cell.dataset.x);
+    const ty = parseInt(cell.dataset.y);
+
+    const enemyId = state.selectedEnemy;
+    const nextPos = { x: tx, y: ty };
+
+    // Apply movement
+    if (enemyId === 'A') state.enemyAPos = nextPos;
+    else if (enemyId === 'B') state.enemyBPos = nextPos;
+    else if (enemyId === 'C') state.enemyCPos = nextPos;
+
+    updateTokenPositions();
+    clearEnemyHighlights();
+    
+    state.lastMovedEnemy = enemyId;
+    state.selectedEnemy = null;
+
+    logMessage(`追跡者${enemyId} が (${tx}, ${ty}) に移動しました。`, true);
+
+    // End Enemy turn and transition back to player
+    state.isProcessingAI = true; // Temporary lock during delay
+    setTimeout(() => {
+        state.isProcessingAI = false;
+        state.currentRound += 1;
+        state.phase = 'player';
+        updateUI();
+        const ended = checkGameState();
+        if (!ended) {
+            highlightValidMoves();
+            logMessage(`ラウンド ${state.currentRound}: あなたのターンです。`);
+        }
+    }, 800);
+}
+
+function clearEnemyHighlights() {
+    const cells = boardElement.querySelectorAll('.cell');
+    cells.forEach(cell => {
+        cell.classList.remove('selectable-enemy');
+        cell.classList.remove('selected-enemy-owner');
+        cell.classList.remove('valid-enemy-move');
+        cell.removeEventListener('click', handleEnemyCellClick);
+        cell.removeEventListener('click', handleEnemyMoveClick);
+        delete cell.dataset.enemyId;
+    });
 }
