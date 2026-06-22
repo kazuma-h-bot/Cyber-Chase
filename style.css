@@ -35,6 +35,15 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    -webkit-tap-highlight-color: transparent; /* Disable default blue tap highlight on mobile */
+    -webkit-user-select: none; /* Prevent accidental text selection on taps */
+    user-select: none;
+}
+
+/* Allow text selection specifically for logs and rules */
+.info-log, .rule-content {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 /* Cyberpunk Background Grid */
