@@ -239,116 +239,34 @@ function initGame() {
 
 // Randomize positions inside the middle 3x3 (1,1) to (3,3)
 function randomizePositions() {
+    // プレイヤーは中央4マスからランダムにスポーン
+    const centerPositions = [
+        { x: 1, y: 1 }, { x: 1, y: 2 },
+        { x: 2, y: 1 }, { x: 2, y: 2 }
+    ];
+    state.playerPos = centerPositions[Math.floor(Math.random() * centerPositions.length)];
+
+    // 敵は難易度に応じて端（四隅）の固定位置からスポーン
     if (state.difficulty === 'hard') {
-        // HARD mode: 4 enemies (A, B, C, D). Player starts in the center 2x2.
-        // 3 enemies block 3 neighbors, 1 neighbor left as escape route.
-        // The 4th enemy is placed in any remaining open space on the board.
-        const centerPositions = [
-            { x: 1, y: 1 }, { x: 1, y: 2 },
-            { x: 2, y: 1 }, { x: 2, y: 2 }
-        ];
-        const pPos = centerPositions[Math.floor(Math.random() * centerPositions.length)];
-        state.playerPos = pPos;
-        
-        // Neighbors of P
-        const neighbors = [
-            { x: pPos.x - 1, y: pPos.y },
-            { x: pPos.x + 1, y: pPos.y },
-            { x: pPos.x, y: pPos.y - 1 },
-            { x: pPos.x, y: pPos.y + 1 }
-        ];
-        
-        // Shuffle neighbors to pick 3 to block, leaving 1 escape
-        for (let i = neighbors.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [neighbors[i], neighbors[j]] = [neighbors[j], neighbors[i]];
-        }
-        
-        const e1 = neighbors[0];
-        const e2 = neighbors[1];
-        const e3 = neighbors[2];
-        const escapeRoute = neighbors[3]; // Not blocked!
-        
-        // Remaining board spots for the 4th enemy (D)
-        const occupiedCoords = new Set([
-            `${pPos.x},${pPos.y}`,
-            `${e1.x},${e1.y}`,
-            `${e2.x},${e2.y}`,
-            `${e3.x},${e3.y}`,
-            `${escapeRoute.x},${escapeRoute.y}`
-        ]);
-        
-        const availableForD = [];
-        for (let y = 0; y < 4; y++) {
-            for (let x = 0; x < 4; x++) {
-                const coordStr = `${x},${y}`;
-                if (!occupiedCoords.has(coordStr)) {
-                    availableForD.push({ x, y });
-                }
-            }
-        }
-        
-        const e4 = availableForD[Math.floor(Math.random() * availableForD.length)];
-        
-        // Randomly assign to A, B, C, and D
-        const enemies = [e1, e2, e3, e4];
-        for (let i = enemies.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [enemies[i], enemies[j]] = [enemies[j], enemies[i]];
-        }
-        state.enemyAPos = enemies[0];
-        state.enemyBPos = enemies[1];
-        state.enemyCPos = enemies[2];
-        state.enemyDPos = enemies[3];
+        // HARD (4体): 四隅すべてを占有
+        state.enemyAPos = { x: 0, y: 0 };
+        state.enemyBPos = { x: 3, y: 0 };
+        state.enemyCPos = { x: 0, y: 3 };
+        state.enemyDPos = { x: 3, y: 3 };
     } else if (state.difficulty === 'mild' || state.difficulty === 'human') {
-        // MILD/HUMAN mode: 3 enemies (A, B, C) setup corners trapping but leaving 1 escape path
-        const centerPositions = [
-            { x: 1, y: 1 }, { x: 1, y: 2 },
-            { x: 2, y: 1 }, { x: 2, y: 2 }
-        ];
-        const pPos = centerPositions[Math.floor(Math.random() * centerPositions.length)];
-        state.playerPos = pPos;
-        
-        // Neighbors of P
-        const neighbors = [
-            { x: pPos.x - 1, y: pPos.y },
-            { x: pPos.x + 1, y: pPos.y },
-            { x: pPos.x, y: pPos.y - 1 },
-            { x: pPos.x, y: pPos.y + 1 }
-        ];
-        
-        // Shuffle neighbors to pick 3 randomly
-        for (let i = neighbors.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [neighbors[i], neighbors[j]] = [neighbors[j], neighbors[i]];
-        }
-        
-        state.enemyAPos = neighbors[0];
-        state.enemyBPos = neighbors[1];
-        state.enemyCPos = neighbors[2];
+        // MILD / HUMAN (3体): 左上・右上・左下の3隅
+        state.enemyAPos = { x: 0, y: 0 };
+        state.enemyBPos = { x: 3, y: 0 };
+        state.enemyCPos = { x: 0, y: 3 };
         state.enemyDPos = null;
     } else {
-        // EASY: Random inside the central 2x2 grid (1,1) to (2,2), enemy C/D remains null
-        const startPositions = [];
-        for (let y = 1; y <= 2; y++) {
-            for (let x = 1; x <= 2; x++) {
-                startPositions.push({ x, y });
-            }
-        }
-
-        // Shuffle
-        for (let i = startPositions.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [startPositions[i], startPositions[j]] = [startPositions[j], startPositions[i]];
-        }
-
-        // Assign
-        state.playerPos = startPositions[0];
-        state.enemyAPos = startPositions[1];
-        state.enemyBPos = startPositions[2];
+        // EASY (2体): 左上・右上の2隅
+        state.enemyAPos = { x: 0, y: 0 };
+        state.enemyBPos = { x: 3, y: 0 };
         state.enemyCPos = null;
         state.enemyDPos = null;
     }
+}
 }
 
 // Create or update HTML Elements for Tokens
@@ -706,15 +624,28 @@ function processEnemyTurn() {
         moves.forEach(move => {
             validMoveChoices.push({ enemyId, move });
 
-            let score;
+            // 1. 直後の仮の盤面におけるプレイヤーの移動可能マス数（自由度）を算出
+            const simEnemies = [other1];
+            if (other2) simEnemies.push(other2);
+            if (other3) simEnemies.push(other3);
+            simEnemies.push(move); // この敵の移動先も障害物に含める
+            
+            const immediatePlayerMoves = getValidMoves(state.playerPos, simEnemies);
+            const immediateMobility = immediatePlayerMoves.length; // 0〜4
+
+            // 2. シミュレーション（または最短経路）スコアの取得
+            let simScore;
             if (state.difficulty === 'hard') {
-                score = evaluateMoveWithSimulations(enemyId, move, 100);
+                simScore = evaluateMoveWithSimulations(enemyId, move, 100);
             } else if (state.difficulty === 'mild' || state.difficulty === 'easy') {
-                score = evaluateMoveWithSimulations(enemyId, move, 50);
+                simScore = evaluateMoveWithSimulations(enemyId, move, 50);
             } else {
                 const pathDist = getShortestPathLength(move, state.playerPos, [other1, other2, other3].filter(p => p !== null));
-                score = -pathDist;
+                simScore = -pathDist * 100; // スケール調整
             }
+            
+            // 3. 総合評価スコア: 「直後のプレイヤーの逃げ道の少なさ」を極めて高く評価（重み 800）
+            let score = (4 - immediateMobility) * 800 + simScore;
             
             if (bestChoice === null || score > bestChoice.score) {
                 bestChoice = { enemyId, move, score: score };
