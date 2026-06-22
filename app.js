@@ -416,9 +416,9 @@ function setTokenPos(tokenId, pos) {
     const token = document.getElementById(tokenId);
     if (!token) return;
     
-    // Cell size in 4x4 is 25% width/height.
-    token.style.left = `${pos.x * 25}%`;
-    token.style.top = `${pos.y * 25}%`;
+    // Exact alignment calculation taking 4x4 grid gaps (8px) into account
+    token.style.left = `calc(${pos.x} * (25% + 2px))`;
+    token.style.top = `calc(${pos.y} * (25% + 2px))`;
 }
 
 // --- UI Updates ---

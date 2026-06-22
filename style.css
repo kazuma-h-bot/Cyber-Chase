@@ -453,8 +453,8 @@ body {
 
 .token {
     position: absolute;
-    width: calc(25% - 10px);
-    height: calc(25% - 10px);
+    width: calc(25% - 6px); /* Exact cell width (100% - 3*8px)/4 */
+    height: calc(25% - 6px); /* Exact cell height (100% - 3*8px)/4 */
     display: flex;
     justify-content: center;
     align-items: center;
