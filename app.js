@@ -267,7 +267,6 @@ function randomizePositions() {
         state.enemyDPos = null;
     }
 }
-}
 
 // Create or update HTML Elements for Tokens
 function createTokens() {
