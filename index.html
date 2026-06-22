@@ -15,6 +15,18 @@
     <div class="scanlines"></div>
 
     <div class="container">
+        <!-- ================= スプラッシュ画面 ================= -->
+        <div id="splash-screen">
+            <div class="splash-content">
+                <div class="splash-sub">[ ESTABLISHING NEURAL LINK... ]</div>
+                <h2 class="splash-logo">TETRA CYBERNETICS</h2>
+                <div class="splash-loader">
+                    <div class="splash-loader-bar"></div>
+                </div>
+                <div class="splash-sub-footer">PRESENTS</div>
+            </div>
+        </div>
+
         <!-- ================= タイトル画面 ================= -->
         <section id="title-screen" class="screen active">
             <div class="glitch-wrapper">
@@ -140,6 +152,11 @@
             </div>
         </section>
     </div>
+
+    <!-- Title BGM (User MP3) -->
+    <audio id="title-bgm" src="bgm.mp3" loop></audio>
+    <!-- Game BGM (User MP3) -->
+    <audio id="game-bgm" src="bgm_2.mp3" loop></audio>
 
     <script src="app.js"></script>
 </body>

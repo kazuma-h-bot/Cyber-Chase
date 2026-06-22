@@ -47,15 +47,74 @@ const statRounds = document.getElementById('stat-rounds');
 const statDifficulty = document.getElementById('stat-difficulty');
 const statStatus = document.getElementById('stat-status');
 
+// Audio BGM Element
+const titleBgm = document.getElementById('title-bgm');
+const gameBgm = document.getElementById('game-bgm');
+
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     buildBoardDOM();
+
+    // Start splash screen countdown
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+        setTimeout(() => {
+            splash.classList.add('fade-out');
+            setTimeout(() => {
+                splash.remove(); // Remove from DOM after fade-out transition completes
+            }, 800); // matches CSS transition time (0.8s)
+        }, 3000); // Display splash screen for 3 seconds
+    }
 });
+
+// Play BGM on first user interaction on the title screen
+document.addEventListener('click', startBgmOnInteraction, { once: true });
+document.addEventListener('keydown', startBgmOnInteraction, { once: true });
+
+function startBgmOnInteraction() {
+    if (screens.title.classList.contains('active')) {
+        titleBgm.volume = 0.2; // Moderate title BGM volume
+        titleBgm.play().catch(err => console.log("BGM playback restriction: ", err));
+    }
+}
+
+// Fade out BGM smoothly when game starts
+function fadeOutBGM(audioElement, duration = 1000, callback) {
+    if (!audioElement) return;
+    if (audioElement.paused) {
+        if (callback) callback();
+        return;
+    }
+    
+    const startVolume = audioElement.volume;
+    const steps = 20;
+    const stepTime = duration / steps;
+    const volumeStep = startVolume / steps;
+    
+    let currentStep = 0;
+    const interval = setInterval(() => {
+        currentStep++;
+        if (currentStep >= steps) {
+            audioElement.pause();
+            audioElement.volume = startVolume; // Restore original volume for next playback
+            clearInterval(interval);
+            if (callback) callback();
+        } else {
+            audioElement.volume = Math.max(0, startVolume - (volumeStep * currentStep));
+        }
+    }, stepTime);
+}
 
 // Event Listeners
 function setupEventListeners() {
     startBtn.addEventListener('click', () => {
+        // Smoothly fade out title BGM and then start game BGM
+        fadeOutBGM(titleBgm, 1000, () => {
+            gameBgm.volume = 0.15; // Moderate volume for gameplay BGM
+            gameBgm.play().catch(err => console.log("Game BGM playback restriction: ", err));
+        });
+
         // Read selected difficulty
         const selectedDiff = document.querySelector('input[name="difficulty"]:checked').value;
         state.difficulty = selectedDiff;
@@ -66,21 +125,43 @@ function setupEventListeners() {
 
     restartBtn.addEventListener('click', () => {
         if (state.isProcessingAI) return;
+        // Restart BGM track from beginning for restart feel
+        gameBgm.currentTime = 0;
         initGame();
     });
 
     quitBtn.addEventListener('click', () => {
         if (state.isProcessingAI) return;
+        
+        // Stop game BGM immediately
+        gameBgm.pause();
+        gameBgm.currentTime = 0;
+
         switchScreen('title');
+        
+        // Restart Title BGM
+        titleBgm.volume = 0.2;
+        titleBgm.play().catch(err => console.log(err));
     });
 
     retryBtn.addEventListener('click', () => {
         switchScreen('game');
+        gameBgm.currentTime = 0;
+        gameBgm.volume = 0.15;
+        gameBgm.play().catch(err => console.log(err));
         initGame();
     });
 
     backTitleBtn.addEventListener('click', () => {
+        // Stop game BGM immediately
+        gameBgm.pause();
+        gameBgm.currentTime = 0;
+
         switchScreen('title');
+        
+        // Restart Title BGM
+        titleBgm.volume = 0.2;
+        titleBgm.play().catch(err => console.log(err));
     });
 }
 
@@ -893,6 +974,9 @@ function endGame(winner) {
     state.gameOver = true;
     state.winner = winner;
     clearMoveHighlights();
+
+    // Smoothly fade out game BGM when mission ends
+    fadeOutBGM(gameBgm, 1000);
 
     // Delay result screen display for dramatic effect
     setTimeout(() => {
