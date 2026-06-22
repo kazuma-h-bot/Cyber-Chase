@@ -11,8 +11,11 @@
     /* Neon Colors */
     --neon-cyan: #00f0ff;
     --neon-magenta: #ff0055;
+    --neon-red: #ff003c;
     --neon-orange: #ffaa00;
+    --neon-yellow: #ffea00;
     --neon-green: #39ff14;
+    --neon-purple: #bd00ff;
     --text-color: #e2e8f0;
     --text-muted: #64748b;
 }
@@ -487,29 +490,23 @@ body {
 }
 
 .token.enemy-a {
-    color: var(--neon-magenta);
+    color: var(--neon-red);
 }
 
 .token.enemy-a .token-inner {
-    background: rgba(255, 0, 85, 0.2);
-    border: 2px solid var(--neon-magenta);
-    border-radius: 4px; /* Square/Diamond */
-    transform: rotate(45deg);
-}
-
-.token.enemy-a .token-inner span {
-    transform: rotate(-45deg);
+    background: rgba(255, 0, 60, 0.2);
+    border: 2px solid var(--neon-red);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); /* Diamond Shape (4 points) */
 }
 
 .token.enemy-b {
-    color: var(--neon-orange);
+    color: var(--neon-yellow);
 }
 
 .token.enemy-b .token-inner {
-    background: rgba(255, 170, 0, 0.2);
-    border: 2px solid var(--neon-orange);
-    border-radius: 6px;
-    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); /* Diamond Shape */
+    background: rgba(255, 234, 0, 0.18);
+    border: 2px solid var(--neon-yellow);
+    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); /* Pentagon Shape (5 points) */
 }
 
 .token.enemy-c {
@@ -519,17 +516,17 @@ body {
 .token.enemy-c .token-inner {
     background: rgba(57, 255, 20, 0.15);
     border: 2px solid var(--neon-green);
-    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); /* Hexagon */
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); /* Hexagon Shape (6 points) */
 }
 
 .token.enemy-d {
-    color: #bd00ff;
+    color: var(--neon-purple);
 }
 
 .token.enemy-d .token-inner {
     background: rgba(189, 0, 255, 0.15);
-    border: 2px solid #bd00ff;
-    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); /* Octagon */
+    border: 2px solid var(--neon-purple);
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); /* Octagon Shape (8 points) */
 }
 
 @keyframes float {
