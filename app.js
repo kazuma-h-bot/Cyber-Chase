@@ -201,7 +201,7 @@ function initGame() {
     } else if (state.difficulty === 'mild') {
         state.maxRounds = 20;
     } else if (state.difficulty === 'hard') {
-        state.maxRounds = 24;
+        state.maxRounds = 20;
     } else if (state.difficulty === 'insame') {
         state.maxRounds = 24;
     } else if (state.difficulty === 'human') {

@@ -47,7 +47,7 @@
                     </label>
                     <label class="diff-btn">
                         <input type="radio" name="difficulty" value="hard">
-                        <span class="diff-label">HARD (24T / 壁2)</span>
+                        <span class="diff-label">HARD (20T / 壁2)</span>
                     </label>
                     <label class="diff-btn">
                         <input type="radio" name="difficulty" value="insame">
@@ -76,13 +76,13 @@
                             <ul>
                                 <li>EASY: 敵3コマ（UNIT A, B, C）。越境禁止辺（レーザー壁）がランダムに1辺生成され、50回シミュレーション学習AIで追跡します。（16T）</li>
                                 <li>MILD: 敵3コマ（UNIT A, B, C）。越境禁止辺がランダムに2辺生成され、「前ターンに動かしたコマは次ターン動かせない」ルールで追跡します。（20T）</li>
-                                <li>HARD: 敵4コマ（UNIT A, B, C, D）。越境禁止辺がランダムに2辺生成され、「前ターンに動かしたコマは次ターン動かせない」ルールで追跡します。（24T）</li>
+                                <li>HARD: 敵4コマ（UNIT A, B, C, D）。越境禁止辺がランダムに2辺生成され、「前ターンに動かしたコマは次ターン動かせない」ルールで追跡します。（20T）</li>
                                 <li>INSAME: 敵4コマ（UNIT A, B, C, D）。越境禁止辺がランダムに3辺生成され、「前ターンに動かしたコマは次ターン動かせない」ルールで追跡します。（24T）</li>
                                 <li>HUMAN: 敵3コマ（UNIT A, B, C）。越境禁止辺がランダムに2辺生成され、「前ターンに動かしたコマは次ターン動かせない」ルールを適用した対人戦です。（24T）</li>
                             </ul>
                         </li>
                         <li><span class="highlight-blue">競合の禁止:</span> 1つのマスに入れるコマは1つまで。味方・敵の共存や、敵同士の共存は不可。他のコマの飛び越しもできません。</li>
-                        <li><span class="highlight-green">逃亡者（味方）勝利:</span> 敵に完全に包囲（移動可能マスがゼロ）されずに、選択した難易度の<span class="highlight-green">最大ターン（EASY: 16 / MILD: 20 / HARD/INSAME/HUMAN: 24ターン）</span>を生き延びること。</li>
+                        <li><span class="highlight-green">逃亡者（味方）勝利:</span> 敵に完全に包囲（移動可能マスがゼロ）されずに、選択した難易度の<span class="highlight-green">最大ターン（EASY: 16 / MILD/HARD: 20 / INSAME/HUMAN: 24ターン）</span>を生き延びること。</li>
                         <li><span class="highlight-red">追跡者（敵）勝利:</span> 最大ターン以内に逃亡者を完全に包囲（チェックメイト）すること。</li>
                     </ul>
                 </div>
