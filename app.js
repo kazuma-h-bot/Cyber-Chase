@@ -199,11 +199,13 @@ function initGame() {
     if (state.difficulty === 'easy') {
         state.maxRounds = 16;
     } else if (state.difficulty === 'mild') {
-        state.maxRounds = 16;
-    } else if (state.difficulty === 'hard') {
-        state.maxRounds = 16;
-    } else if (state.difficulty === 'human') {
         state.maxRounds = 20;
+    } else if (state.difficulty === 'hard') {
+        state.maxRounds = 24;
+    } else if (state.difficulty === 'insame') {
+        state.maxRounds = 24;
+    } else if (state.difficulty === 'human') {
+        state.maxRounds = 24;
     }
 
     state.currentRound = 1;
@@ -217,7 +219,12 @@ function initGame() {
     state.isProcessingAI = false;
 
     // Generate random laser walls based on difficulty
-    const wallCount = state.difficulty === 'easy' ? 1 : 2;
+    let wallCount = 2;
+    if (state.difficulty === 'easy') {
+        wallCount = 1;
+    } else if (state.difficulty === 'insame') {
+        wallCount = 3;
+    }
     state.walls = generateWalls(wallCount);
 
     // Randomize initial positions
@@ -253,8 +260,8 @@ function randomizePositions() {
     state.playerPos = centerPositions[Math.floor(Math.random() * centerPositions.length)];
 
     // 敵は難易度に応じて端（四隅）の固定位置からスポーン
-    if (state.difficulty === 'hard') {
-        // HARD (4体): 四隅すべてを占有
+    if (state.difficulty === 'hard' || state.difficulty === 'insame') {
+        // HARD / INSAME (4体): 四隅すべてを占有
         state.enemyAPos = { x: 0, y: 0 };
         state.enemyBPos = { x: 3, y: 0 };
         state.enemyCPos = { x: 0, y: 3 };
@@ -302,8 +309,8 @@ function createTokens() {
     enemyCToken.innerHTML = '<div class="token-inner"><span>C</span></div>';
     boardElement.appendChild(enemyCToken);
 
-    // Enemy D Token (Only in HARD)
-    if (state.difficulty === 'hard') {
+    // Enemy D Token (Only in HARD and INSAME)
+    if (state.difficulty === 'hard' || state.difficulty === 'insame') {
         const enemyDToken = document.createElement('div');
         enemyDToken.id = 'token-enemy-d';
         enemyDToken.className = 'token enemy-d';
@@ -349,7 +356,7 @@ function updateUI() {
     }
 
     // Next enemy info (or locked status)
-    if (state.difficulty === 'hard') {
+    if (state.difficulty === 'hard' || state.difficulty === 'insame') {
         if (state.lastMovedEnemy === null) {
             nextEnemyIndicator.textContent = 'UNIT A';
             nextEnemyIndicator.style.color = 'var(--neon-magenta)';
@@ -502,7 +509,7 @@ function processEnemyTurn() {
 
     // Decide active enemy candidates
     let candidates = [];
-    if (state.difficulty === 'hard') {
+    if (state.difficulty === 'hard' || state.difficulty === 'insame') {
         // 4 enemies: Cannot move the one moved last turn
         if (state.lastMovedEnemy === null) {
             candidates = ['A']; // Forced A on first turn
@@ -623,7 +630,7 @@ function processEnemyTurn() {
 
             // 2. シミュレーション（または最短経路）スコアの取得
             let simScore;
-            if (state.difficulty === 'hard') {
+            if (state.difficulty === 'hard' || state.difficulty === 'insame') {
                 simScore = evaluateMoveWithSimulations(enemyId, move, 100);
             } else if (state.difficulty === 'mild' || state.difficulty === 'easy') {
                 simScore = evaluateMoveWithSimulations(enemyId, move, 50);
@@ -655,8 +662,8 @@ function processEnemyTurn() {
         } else if (bestChoice) {
             chosenEnemyId = bestChoice.enemyId;
             chosenMove = bestChoice.move;
-            if (state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'easy') {
-                const runs = state.difficulty === 'hard' ? 100 : 50;
+            if (state.difficulty === 'hard' || state.difficulty === 'insame' || state.difficulty === 'mild' || state.difficulty === 'easy') {
+                const runs = (state.difficulty === 'hard' || state.difficulty === 'insame') ? 100 : 50;
                 logMessage(`追跡者${chosenEnemyId} が${runs}回シミュレーション学習により最適包囲軌道を選択。`, true);
             } else {
                 logMessage(`追跡者${chosenEnemyId} が最短インターセプト軌道を算出。`, true);

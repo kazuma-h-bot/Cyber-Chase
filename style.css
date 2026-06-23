@@ -185,6 +185,10 @@ body {
     cursor: pointer;
 }
 
+.diff-btn.full-width {
+    grid-column: span 2;
+}
+
 .diff-btn input {
     display: none;
 }
