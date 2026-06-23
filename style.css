@@ -808,3 +808,47 @@ body {
     0%, 100% { opacity: 0.4; }
     50% { opacity: 1; }
 }
+
+/* ==========================================
+   LASER WALLS (CROSSING-FORBIDDEN EDGES)
+   ========================================== */
+.cell {
+    position: relative; /* Ensure relative positioning for wall overlays */
+}
+
+.cell.wall-right::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -5px; /* Positioned exactly in the center of the 8px grid gap */
+    width: 2px;
+    height: 100%;
+    background: var(--neon-magenta);
+    box-shadow: 0 0 6px var(--neon-magenta), 0 0 12px var(--neon-magenta);
+    z-index: 5;
+    animation: laserBlink 1.5s infinite alternate ease-in-out;
+}
+
+.cell.wall-bottom::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; /* Positioned exactly in the center of the 8px grid gap */
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--neon-magenta);
+    box-shadow: 0 0 6px var(--neon-magenta), 0 0 12px var(--neon-magenta);
+    z-index: 5;
+    animation: laserBlink 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes laserBlink {
+    0%, 100% { 
+        opacity: 0.7; 
+        filter: brightness(0.9);
+    }
+    50% { 
+        opacity: 1; 
+        filter: brightness(1.3);
+    }
+}

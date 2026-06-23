@@ -15,6 +15,7 @@ const state = {
     lastMovedEnemy: null, // 'A', 'B', 'C', or 'D'
     difficulty: 'mild', // 'easy', 'mild', or 'hard'
     selectedEnemy: null, // Added for HUMAN mode
+    walls: [], // Added for Laser Walls (crossing-forbidden edges)
     gameOver: false,
     winner: null, // 'player' or 'enemy'
     isProcessingAI: false
@@ -198,9 +199,9 @@ function initGame() {
     if (state.difficulty === 'easy') {
         state.maxRounds = 16;
     } else if (state.difficulty === 'mild') {
-        state.maxRounds = 18;
+        state.maxRounds = 16;
     } else if (state.difficulty === 'hard') {
-        state.maxRounds = 20;
+        state.maxRounds = 16;
     } else if (state.difficulty === 'human') {
         state.maxRounds = 20;
     }
@@ -215,12 +216,17 @@ function initGame() {
     state.winner = null;
     state.isProcessingAI = false;
 
-    // Randomize initial positions in the middle 3x3
+    // Generate random laser walls based on difficulty
+    const wallCount = state.difficulty === 'easy' ? 1 : 2;
+    state.walls = generateWalls(wallCount);
+
+    // Randomize initial positions
     randomizePositions();
 
     // Reset board UI
     clearMoveHighlights();
     clearEnemyHighlights();
+    renderWalls(); // Render the new laser walls
     
     // Create/Recreate tokens
     createTokens();
@@ -253,17 +259,11 @@ function randomizePositions() {
         state.enemyBPos = { x: 3, y: 0 };
         state.enemyCPos = { x: 0, y: 3 };
         state.enemyDPos = { x: 3, y: 3 };
-    } else if (state.difficulty === 'mild' || state.difficulty === 'human') {
-        // MILD / HUMAN (3体): 左上・右上・左下の3隅
+    } else {
+        // EASY / MILD / HUMAN (3体): 左上・右上・左下の3隅
         state.enemyAPos = { x: 0, y: 0 };
         state.enemyBPos = { x: 3, y: 0 };
         state.enemyCPos = { x: 0, y: 3 };
-        state.enemyDPos = null;
-    } else {
-        // EASY (2体): 左上・右上の2隅
-        state.enemyAPos = { x: 0, y: 0 };
-        state.enemyBPos = { x: 3, y: 0 };
-        state.enemyCPos = null;
         state.enemyDPos = null;
     }
 }
@@ -295,14 +295,12 @@ function createTokens() {
     enemyBToken.innerHTML = '<div class="token-inner"><span>B</span></div>';
     boardElement.appendChild(enemyBToken);
 
-    // Enemy C Token (Only in MILD / HARD / HUMAN)
-    if (state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') {
-        const enemyCToken = document.createElement('div');
-        enemyCToken.id = 'token-enemy-c';
-        enemyCToken.className = 'token enemy-c';
-        enemyCToken.innerHTML = '<div class="token-inner"><span>C</span></div>';
-        boardElement.appendChild(enemyCToken);
-    }
+    // Enemy C Token (Always created since all difficulties have at least 3 enemies)
+    const enemyCToken = document.createElement('div');
+    enemyCToken.id = 'token-enemy-c';
+    enemyCToken.className = 'token enemy-c';
+    enemyCToken.innerHTML = '<div class="token-inner"><span>C</span></div>';
+    boardElement.appendChild(enemyCToken);
 
     // Enemy D Token (Only in HARD)
     if (state.difficulty === 'hard') {
@@ -321,10 +319,10 @@ function updateTokenPositions() {
     setTokenPos('token-player', state.playerPos);
     setTokenPos('token-enemy-a', state.enemyAPos);
     setTokenPos('token-enemy-b', state.enemyBPos);
-    if ((state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') && state.enemyCPos) {
+    if (state.enemyCPos) {
         setTokenPos('token-enemy-c', state.enemyCPos);
     }
-    if (state.difficulty === 'hard' && state.enemyDPos) {
+    if (state.enemyDPos) {
         setTokenPos('token-enemy-d', state.enemyDPos);
     }
 }
@@ -368,7 +366,8 @@ function updateUI() {
             nextEnemyIndicator.textContent = 'UNIT A / B / C';
             nextEnemyIndicator.style.color = 'var(--neon-magenta)';
         }
-    } else if (state.difficulty === 'mild' || state.difficulty === 'human') {
+    } else {
+        // EASY / MILD / HUMAN (3 enemies)
         if (state.lastMovedEnemy === null) {
             nextEnemyIndicator.textContent = 'UNIT A';
             nextEnemyIndicator.style.color = 'var(--neon-magenta)';
@@ -381,14 +380,6 @@ function updateUI() {
         } else {
             nextEnemyIndicator.textContent = 'UNIT A / B';
             nextEnemyIndicator.style.color = 'var(--neon-magenta)';
-        }
-    } else {
-        const nextEnemy = state.lastMovedEnemy === 'A' ? 'UNIT B' : 'UNIT A';
-        nextEnemyIndicator.textContent = nextEnemy;
-        if (nextEnemy === 'UNIT A') {
-            nextEnemyIndicator.style.color = 'var(--neon-magenta)';
-        } else {
-            nextEnemyIndicator.style.color = 'var(--neon-orange)';
         }
     }
 }
@@ -414,7 +405,12 @@ function getValidMoves(pos, otherTokens) {
 
         // 1. Within board bounds (4x4)
         if (nx >= 0 && nx < 4 && ny >= 0 && ny < 4) {
-            // 2. No collision with other tokens
+            // 2. Check for Laser Wall block
+            if (isWallBlocking(pos, { x: nx, y: ny })) {
+                continue;
+            }
+            
+            // 3. No collision with other tokens
             const isColliding = otherTokens.some(t => t && t.x === nx && t.y === ny);
             if (!isColliding) {
                 moves.push({ x: nx, y: ny });
@@ -431,10 +427,10 @@ function highlightValidMoves() {
     if (state.gameOver || state.phase !== 'player') return;
 
     const enemies = [state.enemyAPos, state.enemyBPos];
-    if ((state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') && state.enemyCPos) {
+    if (state.enemyCPos) {
         enemies.push(state.enemyCPos);
     }
-    if (state.difficulty === 'hard' && state.enemyDPos) {
+    if (state.enemyDPos) {
         enemies.push(state.enemyDPos);
     }
 
@@ -466,10 +462,10 @@ function handleCellClick(event) {
     const ny = parseInt(cell.dataset.y);
 
     const enemies = [state.enemyAPos, state.enemyBPos];
-    if ((state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') && state.enemyCPos) {
+    if (state.enemyCPos) {
         enemies.push(state.enemyCPos);
     }
-    if (state.difficulty === 'hard' && state.enemyDPos) {
+    if (state.enemyDPos) {
         enemies.push(state.enemyDPos);
     }
 
@@ -514,20 +510,13 @@ function processEnemyTurn() {
             const allEnemies = ['A', 'B', 'C', 'D'];
             candidates = allEnemies.filter(e => e !== state.lastMovedEnemy);
         }
-    } else if (state.difficulty === 'mild' || state.difficulty === 'human') {
-        // 3 enemies: Cannot move the one moved last turn
+    } else {
+        // EASY / MILD / HUMAN (3 enemies): Cannot move the one moved last turn
         if (state.lastMovedEnemy === null) {
             candidates = ['A'];
         } else {
             const allEnemies = ['A', 'B', 'C'];
             candidates = allEnemies.filter(e => e !== state.lastMovedEnemy);
-        }
-    } else {
-        // 2 enemies: Alternating
-        if (state.lastMovedEnemy === null || state.lastMovedEnemy === 'B') {
-            candidates = ['A'];
-        } else {
-            candidates = ['B'];
         }
     }
 
@@ -877,10 +866,10 @@ function getShortestPathLength(start, target, obstacles) {
 function checkGameState() {
     // 1. Check for player trapped (Checkmate condition)
     const enemies = [state.enemyAPos, state.enemyBPos];
-    if ((state.difficulty === 'hard' || state.difficulty === 'mild' || state.difficulty === 'human') && state.enemyCPos) {
+    if (state.enemyCPos) {
         enemies.push(state.enemyCPos);
     }
-    if (state.difficulty === 'hard' && state.enemyDPos) {
+    if (state.enemyDPos) {
         enemies.push(state.enemyDPos);
     }
     const playerValidMoves = getValidMoves(state.playerPos, enemies);
@@ -1049,4 +1038,78 @@ function clearEnemyHighlights() {
         cell.removeEventListener('click', handleEnemyMoveClick);
         delete cell.dataset.enemyId;
     });
+}
+
+// --- Laser Wall Helper Functions ---
+
+function generateWalls(count) {
+    const candidates = [];
+    
+    // Vertical walls (blocking left-right movement)
+    for (let y = 0; y < 4; y++) {
+        for (let x = 0; x < 3; x++) {
+            candidates.push({ type: 'vertical', x: x, y: y });
+        }
+    }
+    // Horizontal walls (blocking up-down movement)
+    for (let y = 0; y < 3; y++) {
+        for (let x = 0; x < 4; x++) {
+            candidates.push({ type: 'horizontal', x: x, y: y });
+        }
+    }
+    
+    // Shuffle candidates
+    for (let i = candidates.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+    }
+    
+    // Slice based on count requested
+    return candidates.slice(0, count);
+}
+
+function renderWalls() {
+    // Clear previous walls styling
+    const cells = boardElement.querySelectorAll('.cell');
+    cells.forEach(cell => {
+        cell.classList.remove('wall-right');
+        cell.classList.remove('wall-bottom');
+    });
+    
+    // Add border-wall classes to cells
+    if (state.walls) {
+        state.walls.forEach(wall => {
+            const cell = boardElement.querySelector(`.cell[data-x="${wall.x}"][data-y="${wall.y}"]`);
+            if (cell) {
+                if (wall.type === 'vertical') {
+                    cell.classList.add('wall-right');
+                } else {
+                    cell.classList.add('wall-bottom');
+                }
+            }
+        });
+    }
+}
+
+function isWallBlocking(from, to) {
+    if (!state.walls || state.walls.length === 0) return false;
+    
+    for (const wall of state.walls) {
+        if (wall.type === 'vertical') {
+            // Vertical wall blocks movement between (wall.x, wall.y) and (wall.x+1, wall.y)
+            if (from.y === wall.y && to.y === wall.y) {
+                if ((from.x === wall.x && to.x === wall.x + 1) || (from.x === wall.x + 1 && to.x === wall.x)) {
+                    return true;
+                }
+            }
+        } else if (wall.type === 'horizontal') {
+            // Horizontal wall blocks movement between (wall.x, wall.y) and (wall.x, wall.y+1)
+            if (from.x === wall.x && to.x === wall.x) {
+                if ((from.y === wall.y && to.y === wall.y + 1) || (from.y === wall.y + 1 && to.y === wall.y)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }

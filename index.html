@@ -39,19 +39,19 @@
                 <div class="difficulty-options">
                     <label class="diff-btn">
                         <input type="radio" name="difficulty" value="easy">
-                        <span class="diff-label">EASY (16T)</span>
+                        <span class="diff-label">EASY (16T / 壁1)</span>
                     </label>
                     <label class="diff-btn">
                         <input type="radio" name="difficulty" value="mild" checked>
-                        <span class="diff-label">MILD (18T)</span>
+                        <span class="diff-label">MILD (16T / 壁2)</span>
                     </label>
                     <label class="diff-btn">
                         <input type="radio" name="difficulty" value="hard">
-                        <span class="diff-label">HARD (20T)</span>
+                        <span class="diff-label">HARD (16T / 壁2)</span>
                     </label>
                     <label class="diff-btn">
                         <input type="radio" name="difficulty" value="human">
-                        <span class="diff-label">HUMAN (20T)</span>
+                        <span class="diff-label">HUMAN (20T / 壁2)</span>
                     </label>
                 </div>
             </div>
@@ -66,18 +66,18 @@
                 <div class="rule-content">
                     <ul>
                         <li><span class="highlight-blue">ターン制進行:</span> 逃亡者（味方）→ 追跡者（敵）の順に交互に行動します。</li>
-                        <li><span class="highlight-blue">初期配置:</span> 中央の2×2エリア（4マス）に配置されます（MILD/HARDは周囲を敵に囲まれる包囲陣形。※HARDは完全には囲みません）。</li>
+                        <li><span class="highlight-blue">初期配置:</span> プレイヤーは中央4マスからランダムに、敵は難易度に応じた端（四隅）の固定位置から進軍を開始します。</li>
                         <li><span class="highlight-blue">移動制限:</span> 1ターンに1コマ、隣接する上下左右 of 1マスのみ移動可能（斜め・4×4の枠外への移動は不可）。</li>
                         <li><span class="highlight-blue">追跡者(敵)の数とルール:</span>
                             <ul>
-                                <li>EASY: 敵2コマ（UNIT A, B）。毎ターン交互に行動し、50回シミュレーション学習AIで追跡します。（16T）</li>
-                                <li>MILD: 敵<span class="highlight-red">3コマ</span>（UNIT A, B, C）。「前ターンに動かしたコマは次ターン動かせない」ルールが適用され、50回シミュレーション学習AIで追跡します。（18T）</li>
-                                <li>HARD: 敵<span class="highlight-red">4コマ</span>（UNIT A, B, C, D）に増加！「前ターンに動かしたコマは次ターン動かせない」ルールが適用され、100回シミュレーション学習AIで追跡します。（20T）</li>
-                                <li>HUMAN: 敵<span class="highlight-red">3コマ</span>（UNIT A, B, C）。「前ターンに動かしたコマは次ターン動かせない」ルールを適用した**ローカル対人モード**です。敵のターンは人間が操作可能なUNITを選択し、移動先を指定して動かします。（20T）</li>
+                                <li>EASY: 敵3コマ（UNIT A, B, C）。越境禁止辺（レーザー壁）がランダムに1辺生成され、50回シミュレーション学習AIで追跡します。（16T）</li>
+                                <li>MILD: 敵3コマ（UNIT A, B, C）。越境禁止辺がランダムに2辺生成され、「前ターンに動かしたコマは次ターン動かせない」ルールで追跡します。（16T）</li>
+                                <li>HARD: 敵4コマ（UNIT A, B, C, D）。越境禁止辺がランダムに2辺生成され、「前ターンに動かしたコマは次ターン動かせない」ルールで追跡します。（16T）</li>
+                                <li>HUMAN: 敵3コマ（UNIT A, B, C）。越境禁止辺がランダムに2辺生成され、「前ターンに動かしたコマは次ターン動かせない」ルールを適用した対人戦です。（20T）</li>
                             </ul>
                         </li>
                         <li><span class="highlight-blue">競合の禁止:</span> 1つのマスに入れるコマは1つまで。味方・敵の共存や、敵同士の共存は不可。他のコマの飛び越しもできません。</li>
-                        <li><span class="highlight-green">逃亡者（味方）勝利:</span> 敵に完全に包囲（移動可能マスがゼロ）されずに、選択した難易度の<span class="highlight-green">最大ターン（EASY: 16 / MILD: 18 / HARD/HUMAN: 20ターン）</span>を生き延びること。</li>
+                        <li><span class="highlight-green">逃亡者（味方）勝利:</span> 敵に完全に包囲（移動可能マスがゼロ）されずに、選択した難易度の<span class="highlight-green">最大ターン（EASY/MILD/HARD: 16 / HUMAN: 20ターン）</span>を生き延びること。</li>
                         <li><span class="highlight-red">追跡者（敵）勝利:</span> 最大ターン以内に逃亡者を完全に包囲（チェックメイト）すること。</li>
                     </ul>
                 </div>
