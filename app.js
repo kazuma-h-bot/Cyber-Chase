@@ -583,18 +583,18 @@ function processEnemyTurn() {
         if (enemyId === 'A') {
             currentPos = state.enemyAPos;
             other1 = state.enemyBPos;
-            other2 = (state.difficulty === 'hard' || state.difficulty === 'mild') ? state.enemyCPos : null;
-            other3 = (state.difficulty === 'hard') ? state.enemyDPos : null;
+            other2 = state.enemyCPos;
+            other3 = state.enemyDPos;
         } else if (enemyId === 'B') {
             currentPos = state.enemyBPos;
             other1 = state.enemyAPos;
-            other2 = (state.difficulty === 'hard' || state.difficulty === 'mild') ? state.enemyCPos : null;
-            other3 = (state.difficulty === 'hard') ? state.enemyDPos : null;
+            other2 = state.enemyCPos;
+            other3 = state.enemyDPos;
         } else if (enemyId === 'C') {
             currentPos = state.enemyCPos;
             other1 = state.enemyAPos;
             other2 = state.enemyBPos;
-            other3 = (state.difficulty === 'hard') ? state.enemyDPos : null;
+            other3 = state.enemyDPos;
         } else {
             currentPos = state.enemyDPos;
             other1 = state.enemyAPos;
