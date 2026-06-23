@@ -1045,15 +1045,15 @@ function clearEnemyHighlights() {
 function generateWalls(count) {
     const candidates = [];
     
-    // Vertical walls (blocking left-right movement)
-    for (let y = 0; y < 4; y++) {
+    // Vertical walls adjacent to the center 4 cells (y=1 or 2, x=0, 1, or 2)
+    for (let y = 1; y <= 2; y++) {
         for (let x = 0; x < 3; x++) {
             candidates.push({ type: 'vertical', x: x, y: y });
         }
     }
-    // Horizontal walls (blocking up-down movement)
+    // Horizontal walls adjacent to the center 4 cells (x=1 or 2, y=0, 1, or 2)
     for (let y = 0; y < 3; y++) {
-        for (let x = 0; x < 4; x++) {
+        for (let x = 1; x <= 2; x++) {
             candidates.push({ type: 'horizontal', x: x, y: y });
         }
     }
