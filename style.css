@@ -176,13 +176,12 @@ body {
 }
 
 .difficulty-options {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
 }
 
 .diff-btn {
-    flex: 1;
     cursor: pointer;
 }
 
@@ -192,14 +191,13 @@ body {
 
 .diff-label {
     display: block;
-    padding: 12px 4px;
+    padding: 12px 8px;
     text-align: center;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     font-family: 'Orbitron', sans-serif;
-    font-size: clamp(0.7rem, 2vw, 0.8rem);
-    letter-spacing: -0.5px;
+    font-size: clamp(0.75rem, 2.5vw, 0.85rem);
     white-space: nowrap;
     color: var(--text-muted);
     transition: all 0.3s ease;
