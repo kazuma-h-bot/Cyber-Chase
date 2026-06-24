@@ -172,7 +172,7 @@ function switchScreen(screenName) {
     screens[screenName].classList.add('active');
 }
 
-// Build 5x5 Board UI Grid
+// Build 4x4 Board UI Grid
 function buildBoardDOM() {
     boardElement.innerHTML = '';
     for (let y = 0; y < 4; y++) {
@@ -181,7 +181,12 @@ function buildBoardDOM() {
             cell.className = 'cell';
             cell.dataset.x = x;
             cell.dataset.y = y;
-            cell.dataset.coord = `${x},${y}`;
+            
+            // Add coordinate span for tech look
+            const coordSpan = document.createElement('span');
+            coordSpan.className = 'coord-text';
+            coordSpan.textContent = `${x},${y}`;
+            cell.appendChild(coordSpan);
             
             // Mark start area (middle 2x2 in 4x4 grid)
             if (x >= 1 && x <= 2 && y >= 1 && y <= 2) {

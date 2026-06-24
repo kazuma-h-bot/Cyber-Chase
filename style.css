@@ -425,19 +425,14 @@ body {
     cursor: default;
 }
 
-.cell::before {
-    content: '';
+.coord-text {
     position: absolute;
     top: 4px;
     left: 4px;
     font-size: 0.65rem;
     font-family: 'Share Tech Mono', monospace;
     color: rgba(255, 255, 255, 0.15);
-}
-
-/* Enable X-Y coord text inside cells for tech look */
-.cell[data-coord]::before {
-    content: attr(data-coord);
+    pointer-events: none;
 }
 
 /* Highlight cell on player hover if valid move */
