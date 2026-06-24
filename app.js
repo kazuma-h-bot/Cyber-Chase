@@ -1071,8 +1071,20 @@ function generateWalls(count) {
         [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
     }
     
-    // Slice based on count requested
-    return candidates.slice(0, count);
+    // Select walls ensuring no coordinate (x, y) is duplicated
+    const selected = [];
+    const usedCoords = new Set();
+    
+    for (const wall of candidates) {
+        if (selected.length >= count) break;
+        const coordKey = `${wall.x},${wall.y}`;
+        if (!usedCoords.has(coordKey)) {
+            selected.push(wall);
+            usedCoords.add(coordKey);
+        }
+    }
+    
+    return selected;
 }
 
 function renderWalls() {

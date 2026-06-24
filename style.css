@@ -833,7 +833,7 @@ body {
     animation: laserBlink 1.5s infinite alternate ease-in-out;
 }
 
-.cell.wall-bottom::after {
+.cell.wall-bottom::before {
     content: '';
     position: absolute;
     bottom: -5px; /* Positioned exactly in the center of the 8px grid gap */
